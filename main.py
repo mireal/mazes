@@ -1,11 +1,11 @@
 import pygame
-from maze_generators import RandomizedDFS
+from maze_generators import RandomizedDFS, RandomizedPrim
 from drawing_tools import draw_cell
 from tools import create_matrix, remove_border, add_all_borders
 
 pygame.init()
 clock = pygame.time.Clock()
-speed = 60
+speed = 30
 
 cell_size = 30
 border_size = cell_size // 10 if cell_size // 10 >= 1 else 1
@@ -21,11 +21,13 @@ surface = pygame.display.set_mode((cell_size * rows, cell_size * cols))
 
 matrix = create_matrix(cols, rows)
 
-curr_cell = prev_cell = matrix[0][0]
-add_all_borders(curr_cell)
-
-MazeGenerator = RandomizedDFS((cols, rows))
+# MazeGenerator = RandomizedDFS((cols, rows))
+MazeGenerator = RandomizedPrim((cols, rows))
 coord = prev_coord = MazeGenerator.curr
+
+y, x = coord
+curr_cell = prev_cell = matrix[y][x]
+add_all_borders(curr_cell)
 
 directions = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top', (0, 0): None}
 
@@ -47,10 +49,30 @@ while running:
             elif event.key == pygame.K_ESCAPE:
                 running = False
 
+    # if MazeGenerator.not_finished and not paused:
+    #     coord = MazeGenerator.move()
+    #     print(coord)
+    #     y, x = coord
+    #     curr_cell = matrix[y][x]
+    #
+    #     direction = get_direction(coord, prev_coord)
+    #     reversed_direction = reverse_direction(direction)
+    #     direction_name = directions[direction]
+    #     reversed_direction_name = directions[reversed_direction]
+    #
+    #     remove_border(curr_cell, direction_name)
+    #     remove_border(prev_cell, reversed_direction_name)
+    #
+    #     prev_coord = coord
+    #     prev_cell = curr_cell
+
     if MazeGenerator.not_finished and not paused:
-        coord = MazeGenerator.move()
+        prev_coord = MazeGenerator.move()
+        coord = MazeGenerator.curr
         y, x = coord
+        prev_y, prev_x = prev_coord
         curr_cell = matrix[y][x]
+        prev_cell = matrix[prev_y][prev_x]
 
         direction = get_direction(coord, prev_coord)
         reversed_direction = reverse_direction(direction)
@@ -59,9 +81,6 @@ while running:
 
         remove_border(curr_cell, direction_name)
         remove_border(prev_cell, reversed_direction_name)
-
-        prev_coord = coord
-        prev_cell = curr_cell
 
     for y, row in enumerate(matrix):
         for x, cell in enumerate(row):

@@ -1,4 +1,6 @@
-from random import choice
+from random import choice, randint, shuffle
+
+add_tuple = lambda coord, move: (coord[0] + move[0], coord[1] + move[1])
 
 
 class RandomizedDFS:
@@ -11,13 +13,11 @@ class RandomizedDFS:
         self.visited.add(start_coord)
         self.stack = []
 
-        self.add_tuple = lambda coord, move: (coord[0] + move[0], coord[1] + move[1])
-
     def move(self):
         available_moves = self.possible_moves()
         if available_moves:
             move = choice(available_moves)
-            self.curr = self.add_tuple(self.curr, move)
+            self.curr = add_tuple(self.curr, move)
             self.visited.add(self.curr)
             self.stack.append(self.curr)
         else:
@@ -32,12 +32,52 @@ class RandomizedDFS:
     def possible_moves(self):
         moves = []
         for move in ((0, 1), (1, 0), (0, -1), (-1, 0)):
-            next_move = self.add_tuple(self.curr, move)
+            next_move = add_tuple(self.curr, move)
             y, x = next_move
             if next_move not in self.visited and 0 <= y < self.col_len and 0 <= x < self.row_len:
                 moves.append(move)
 
         return moves
+
+
+class RandomizedPrim:
+    def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0), start_at_random=True):
+        self.col_len, self.row_len = grid_size
+        self.max_size = self.col_len * self.row_len
+        self.curr = start_coord
+        if start_at_random:
+            y, x = randint(0, self.col_len - 1), randint(0, self.row_len - 1)
+            self.curr = (y, x)
+        self.directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        self.not_finished = True
+        self.visited = set()
+        self.visited.add(self.curr)
+        self.frontiers = set()
+        self.find_frontiers()
+
+    def move(self):
+        self.curr = choice(tuple(self.frontiers))
+        self.frontiers.remove(self.curr)
+        self.find_frontiers()
+        self.visited.add(self.curr)
+        passage = self.find_passage()
+        if not self.frontiers or len(self.visited) == self.max_size:
+            self.not_finished = False
+        return passage
+
+    def find_frontiers(self):
+        for direction in self.directions:
+            frontier = add_tuple(self.curr, direction)
+            y, x = frontier
+            if frontier not in self.visited and 0 <= y < self.col_len and 0 <= x < self.row_len:
+                self.frontiers.add(frontier)
+
+    def find_passage(self):
+        shuffle(self.directions)
+        for direction in self.directions:
+            passage = add_tuple(self.curr, direction)
+            if passage in self.visited:
+                return passage
 
 
 if __name__ == '__main__':
@@ -48,6 +88,7 @@ if __name__ == '__main__':
     board_size = (len_y, len_x)
     coord = (0, 0)
     dfs = RandomizedDFS(board_size, coord)
+    prim = RandomizedPrim(board_size)
 
 
     def draw_board(board):
@@ -81,10 +122,10 @@ if __name__ == '__main__':
             sleep(speed)
 
 
-    for i in range(1000):
-        dfs = RandomizedDFS((1, i + 2), coord)
-        while dfs.not_finished:
-            dfs.move()
-        print(f'{i + 1} successfully finished')
+    for x in range(100):
+        while prim.not_finished:
+            coord = prim.move()
+            if type(coord) != tuple:
+                print(coord)
 
     print('Done')
