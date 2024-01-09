@@ -1,12 +1,13 @@
 import pygame
 from maze_generators import RandomizedDFS
-from pygame_cell import Cell
+from drawing_tools import draw_cell
+from tools import create_matrix, remove_border, add_all_borders
 
 pygame.init()
 clock = pygame.time.Clock()
-speed = 30
+speed = 60
 
-cell_size = 10
+cell_size = 30
 border_size = cell_size // 10 if cell_size // 10 >= 1 else 1
 
 black = (0, 0, 0)
@@ -14,19 +15,22 @@ background_color = (150, 150, 150)
 cell_color = (200, 200, 200)
 curr_cell_color = (50, 150, 50)
 
-cols = rows = 100
-surface = pygame.display.set_mode((cell_size * cols, cell_size * rows))
+cols = rows = 20
+
+surface = pygame.display.set_mode((cell_size * rows, cell_size * cols))
+
+matrix = create_matrix(cols, rows)
+
+curr_cell = prev_cell = matrix[0][0]
+add_all_borders(curr_cell)
 
 MazeGenerator = RandomizedDFS((cols, rows))
 coord = prev_coord = MazeGenerator.curr
-cells = {}
-CurrCell = PrevCell = Cell(surface, coord, size=cell_size, border_size=border_size)
-cells[coord] = CurrCell
 
-directions = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top'}
+directions = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top', (0, 0): None}
 
-substract_tuple = lambda coord, prev: (prev[0] - coord[0], prev[1] - coord[1])
-reverse_tuple = lambda coord: (coord[0] * -1, coord[1] * -1)
+get_direction = lambda coord, prev: (prev[0] - coord[0], prev[1] - coord[1])
+reverse_direction = lambda coord: (coord[0] * -1, coord[1] * -1)
 
 running = True
 paused = True
@@ -40,34 +44,32 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 paused = not paused
+            elif event.key == pygame.K_ESCAPE:
+                running = False
 
     if MazeGenerator.not_finished and not paused:
         coord = MazeGenerator.move()
+        y, x = coord
+        curr_cell = matrix[y][x]
 
-        if coord not in cells:
-            CurrCell = Cell(surface, coord, size=cell_size, border_size=border_size)
-            cells[coord] = CurrCell
+        direction = get_direction(coord, prev_coord)
+        reversed_direction = reverse_direction(direction)
+        direction_name = directions[direction]
+        reversed_direction_name = directions[reversed_direction]
 
-            direction = substract_tuple(coord, prev_coord)
-            reversed_direction = reverse_tuple(direction)
-
-            dir_name = directions[direction]
-            prev_dir_name = directions[reversed_direction]
-
-            CurrCell.borders[dir_name] = 0
-            PrevCell.borders[prev_dir_name] = 0
-
-        else:
-            CurrCell = cells[coord]
-
-        PrevCell.color = cell_color
-        CurrCell.color = curr_cell_color
+        remove_border(curr_cell, direction_name)
+        remove_border(prev_cell, reversed_direction_name)
 
         prev_coord = coord
-        PrevCell = CurrCell
+        prev_cell = curr_cell
 
-    for cell in cells.values():
-        cell.draw_cell()
+    for y, row in enumerate(matrix):
+        for x, cell in enumerate(row):
+            pos = (y, x)
+            if pos in MazeGenerator.visited:  # Draw cell only if it was already visited
+                draw_cell(surface, pos, cell, cell_size, cell_color, border_size=border_size)
+
+    draw_cell(surface, coord, curr_cell, cell_size, curr_cell_color, border_size)  # Highlight current cell
 
     clock.tick(speed)
     pygame.display.flip()

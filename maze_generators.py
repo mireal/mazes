@@ -14,10 +14,6 @@ class RandomizedDFS:
         self.add_tuple = lambda coord, move: (coord[0] + move[0], coord[1] + move[1])
 
     def move(self):
-        if len(self.visited) == self.max_size:
-            self.not_finished = False
-            return self.curr
-
         available_moves = self.possible_moves()
         if available_moves:
             move = choice(available_moves)
@@ -28,16 +24,17 @@ class RandomizedDFS:
             self.stack.pop()
             self.curr = self.stack[-1]
 
+        if len(self.visited) == self.max_size:
+            self.not_finished = False
+
         return self.curr
 
     def possible_moves(self):
         moves = []
         for move in ((0, 1), (1, 0), (0, -1), (-1, 0)):
-            y, x = self.curr
-            move_y, move_x = move
-            y += move_y
-            x += move_x
-            if (y, x) not in self.visited and 0 <= y < self.col_len and 0 <= x < self.row_len:
+            next_move = self.add_tuple(self.curr, move)
+            y, x = next_move
+            if next_move not in self.visited and 0 <= y < self.col_len and 0 <= x < self.row_len:
                 moves.append(move)
 
         return moves
