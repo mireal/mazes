@@ -42,20 +42,12 @@ def remove_border(cell, direction):
         cell.right = 0
 
 
-def create_matrix(cols: int, rows: int):
+def create_empty_maze(cols: int, rows: int):
     matrix = []
     for y in range(cols):
         row = []
         for x in range(rows):
             cell = Cell()
-            if y == 0:
-                cell.top = 1
-            elif y == cols - 1:
-                cell.bottom = 1
-            if x == 0:
-                cell.left = 1
-            elif x == rows - 1:
-                cell.right = 1
             row.append(cell)
         matrix.append(row)
     return matrix
@@ -77,9 +69,10 @@ def deep_copy(matrix: list[list]):
 
 if __name__ == '__main__':
     rows, cols = 3, 3
-    mat = create_matrix(cols, rows)
-    mat_copy = deep_copy(mat)
+    maze = create_empty_maze(cols, rows)
+    maze_copy = deep_copy(maze)
 
-    cell = mat[0][0]
-    cell_copy = mat_copy[0][0]
+    cell = maze[0][0]
+    cell_copy = maze_copy[0][0]
     print(cell.__dict__ == cell_copy.__dict__)
+    print(cell == cell_copy)

@@ -1,38 +1,32 @@
 import pygame
-from maze_generators import RandomizedDFS, RandomizedPrim
+from maze_generators import RandomizedDFS, RandomizedPrim, maze_filler
+from maze_solvers import DFS
 from drawing_tools import draw_cell
-from tools import create_matrix, remove_border, add_all_borders
+from tools import create_empty_maze
 
 pygame.init()
 clock = pygame.time.Clock()
 speed = 30
 
+cols = rows = 20
 cell_size = 30
 border_size = cell_size // 10 if cell_size // 10 >= 1 else 1
+
+surface = pygame.display.set_mode((cell_size * rows, cell_size * cols))
+pygame.display.set_caption('Maze algorithms')
 
 black = (0, 0, 0)
 background_color = (150, 150, 150)
 cell_color = (200, 200, 200)
-curr_cell_color = (50, 150, 50)
+visited_cell_color = (150, 100, 100)
 
-cols = rows = 20
+generator_cell_color = (50, 150, 50)
 
-surface = pygame.display.set_mode((cell_size * rows, cell_size * cols))
+maze = create_empty_maze(cols, rows)
 
-matrix = create_matrix(cols, rows)
-
-# MazeGenerator = RandomizedDFS((cols, rows))
-MazeGenerator = RandomizedPrim((cols, rows))
-coord = prev_coord = MazeGenerator.curr
-
-y, x = coord
-curr_cell = prev_cell = matrix[y][x]
-add_all_borders(curr_cell)
-
-directions = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top', (0, 0): None}
-
-get_direction = lambda coord, prev: (prev[0] - coord[0], prev[1] - coord[1])
-reverse_direction = lambda coord: (coord[0] * -1, coord[1] * -1)
+# generator = RandomizedDFS((cols, rows))
+generator = RandomizedPrim((cols, rows))
+solver = None
 
 running = True
 paused = True
@@ -49,46 +43,35 @@ while running:
             elif event.key == pygame.K_ESCAPE:
                 running = False
 
-    # if MazeGenerator.not_finished and not paused:
-    #     coord = MazeGenerator.move()
-    #     print(coord)
-    #     y, x = coord
-    #     curr_cell = matrix[y][x]
-    #
-    #     direction = get_direction(coord, prev_coord)
-    #     reversed_direction = reverse_direction(direction)
-    #     direction_name = directions[direction]
-    #     reversed_direction_name = directions[reversed_direction]
-    #
-    #     remove_border(curr_cell, direction_name)
-    #     remove_border(prev_cell, reversed_direction_name)
-    #
-    #     prev_coord = coord
-    #     prev_cell = curr_cell
+    maze_filler(maze, generator, step_by_step=True, paused=paused)
 
-    if MazeGenerator.not_finished and not paused:
-        prev_coord = MazeGenerator.move()
-        coord = MazeGenerator.curr
-        y, x = coord
-        prev_y, prev_x = prev_coord
-        curr_cell = matrix[y][x]
-        prev_cell = matrix[prev_y][prev_x]
+    if generator.not_finished == False and solver == None:
+        solver = DFS(maze)
 
-        direction = get_direction(coord, prev_coord)
-        reversed_direction = reverse_direction(direction)
-        direction_name = directions[direction]
-        reversed_direction_name = directions[reversed_direction]
+    if solver and solver.not_finished and not paused:
+        solver.move()
 
-        remove_border(curr_cell, direction_name)
-        remove_border(prev_cell, reversed_direction_name)
-
-    for y, row in enumerate(matrix):
+    for y, row in enumerate(maze):
         for x, cell in enumerate(row):
             pos = (y, x)
-            if pos in MazeGenerator.visited:  # Draw cell only if it was already visited
+            if solver:
+                if pos in solver.visited:
+                    color = visited_cell_color
+                else:
+                    color = cell_color
+                draw_cell(surface, pos, cell, cell_size, color, border_size=border_size)
+            elif pos in generator.visited:  # Draw cell only if it was already visited
                 draw_cell(surface, pos, cell, cell_size, cell_color, border_size=border_size)
+    if generator.not_finished:
+        pos = generator.curr
+        front_cell_color = generator_cell_color
+    if solver:
+        pos = solver.curr
+        front_cell_color = visited_cell_color
 
-    draw_cell(surface, coord, curr_cell, cell_size, curr_cell_color, border_size)  # Highlight current cell
+    y, x = pos
+    cell = maze[y][x]
+    draw_cell(surface, pos, cell, cell_size, front_cell_color, border_size)  # Highlight current cell
 
     clock.tick(speed)
     pygame.display.flip()
