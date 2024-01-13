@@ -6,21 +6,24 @@ class Cell:
         self.right = right
 
 
-def remove_all_borders(cell):
+directions = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top', (0, 0): None}
+
+
+def remove_all_borders(cell: Cell):
     cell.top = 0
     cell.bottom = 0
     cell.left = 0
     cell.right = 0
 
 
-def add_all_borders(cell):
+def add_all_borders(cell: Cell):
     cell.top = 1
     cell.bottom = 1
     cell.left = 1
     cell.right = 1
 
 
-def add_border(cell, direction):
+def add_border(cell: Cell, direction: str):
     if direction == 'top':
         cell.top = 1
     if direction == 'bottom':
@@ -31,7 +34,7 @@ def add_border(cell, direction):
         cell.right = 1
 
 
-def remove_border(cell, direction):
+def remove_border(cell: Cell, direction: str):
     if direction == 'top':
         cell.top = 0
     if direction == 'bottom':
@@ -42,7 +45,32 @@ def remove_border(cell, direction):
         cell.right = 0
 
 
-def create_empty_maze(cols: int, rows: int):
+def add_tuple(t1: tuple, t2: tuple) -> tuple:
+    y = t1[0] + t2[0]
+    x = t1[1] + t2[1]
+    return y, x
+
+
+def get_direction(pos: tuple, prev_pos: tuple) -> tuple:
+    y = prev_pos[0] - pos[0]
+    x = prev_pos[1] - pos[1]
+    return y, x
+
+
+def reverse_direction(pos: tuple) -> tuple:
+    y = pos[0] * -1
+    x = pos[1] * -1
+    return y, x
+
+
+def manhattan_distance(start: tuple, end: tuple) -> int:
+    y1, x1 = start
+    y2, x2 = end
+    dist = abs(x1 - x2) + abs(y1 - y2)
+    return dist
+
+
+def create_empty_maze(cols: int, rows: int) -> list[list]:
     matrix = []
     for y in range(cols):
         row = []
@@ -53,7 +81,7 @@ def create_empty_maze(cols: int, rows: int):
     return matrix
 
 
-def deep_copy(matrix: list[list]):
+def deep_copy(matrix: list[list]) -> list[list]:
     new_matrix = []
     cols, rows = len(matrix), len(matrix[0])
     for y in range(cols):

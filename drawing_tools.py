@@ -4,6 +4,7 @@ import pygame
 def draw_cell(surface: pygame.Surface, coord: tuple, cell, size: int, color: tuple, border_size: int,
               offsets: tuple = (0, 0),
               border_color: tuple = (0, 0, 0)):
+
     y, x = coord
     y_offset, x_offset = offsets
 
@@ -12,6 +13,7 @@ def draw_cell(surface: pygame.Surface, coord: tuple, cell, size: int, color: tup
     rect = pygame.Rect(rect_left, rect_top, size, size)
 
     borders = cell.__dict__
+
     top_left = (rect_left, rect_top)
     top_right = (rect_left + size, rect_top)
     bottom_left = (rect_left, rect_top + size)

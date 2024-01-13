@@ -1,6 +1,5 @@
 from random import choice, randint, shuffle
-
-add_tuple = lambda coord, move: (coord[0] + move[0], coord[1] + move[1])
+from tools import add_tuple, get_direction, reverse_direction, directions, remove_border
 
 
 class RandomizedDFS:
@@ -14,10 +13,10 @@ class RandomizedDFS:
         self.stack = []
 
     def move(self):
-        available_moves = self.possible_moves()
+        possible_moves = self.possible_moves()
         self.prev = self.curr
-        if available_moves:
-            move = choice(available_moves)
+        if possible_moves:
+            move = choice(possible_moves)
             self.curr = add_tuple(self.curr, move)
             self.visited.add(self.curr)
             self.stack.append(self.curr)
@@ -42,12 +41,15 @@ class RandomizedDFS:
 
 
 class RandomizedPrim:
-    def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0), start_at_random=True):
+    def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0), start_at_random=False, start_at_center=True):
         self.col_len, self.row_len = grid_size
         self.max_size = self.col_len * self.row_len
         self.curr = self.prev = start_coord
         if start_at_random:
             y, x = randint(0, self.col_len - 1), randint(0, self.row_len - 1)
+            self.curr = (y, x)
+        elif start_at_center:
+            y, x = self.col_len // 2, self.row_len // 2
             self.curr = (y, x)
         self.directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
         self.not_finished = True
@@ -57,15 +59,15 @@ class RandomizedPrim:
         self.find_frontiers()
 
     def move(self):
-        self.prev = self.curr
         self.curr = choice(tuple(self.frontiers))
         self.frontiers.remove(self.curr)
         self.find_frontiers()
         self.visited.add(self.curr)
         passage = self.find_passage()
+        self.prev = passage
         if not self.frontiers or len(self.visited) == self.max_size:
             self.not_finished = False
-        return passage
+        return self.curr
 
     def find_frontiers(self):
         for direction in self.directions:
@@ -83,21 +85,9 @@ class RandomizedPrim:
 
 
 def maze_filler(maze, generator, step_by_step=False, paused=False):
-    from tools import remove_border
-
-    directions = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top', (0, 0): None}
-
-    get_direction = lambda coord, prev: (prev[0] - coord[0], prev[1] - coord[1])
-    reverse_direction = lambda coord: (coord[0] * -1, coord[1] * -1)
-
     while generator.not_finished and not paused:
-        if type(generator) == RandomizedDFS:
-            coord = generator.move()
-            prev_coord = generator.prev
-
-        elif type(generator) == RandomizedPrim:
-            prev_coord = generator.move()
-            coord = generator.curr
+        coord = generator.move()
+        prev_coord = generator.prev
 
         y, x = coord
         prev_y, prev_x = prev_coord
@@ -107,6 +97,7 @@ def maze_filler(maze, generator, step_by_step=False, paused=False):
 
         direction = get_direction(coord, prev_coord)
         reversed_direction = reverse_direction(direction)
+
         direction_name = directions[direction]
         reversed_direction_name = directions[reversed_direction]
 
@@ -160,8 +151,8 @@ if __name__ == '__main__':
 
 
     for x in range(100):
-        while prim.not_finished:
-            coord = prim.move()
+        while dfs.not_finished:
+            coord = dfs.move()
             if type(coord) != tuple:
                 print(coord)
 

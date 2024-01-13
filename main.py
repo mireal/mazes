@@ -6,9 +6,9 @@ from tools import create_empty_maze
 
 pygame.init()
 clock = pygame.time.Clock()
-speed = 30
+speed = 20
 
-cols = rows = 20
+cols = rows = 15
 cell_size = 30
 border_size = cell_size // 10 if cell_size // 10 >= 1 else 1
 
@@ -24,8 +24,8 @@ generator_cell_color = (50, 150, 50)
 
 maze = create_empty_maze(cols, rows)
 
-# generator = RandomizedDFS((cols, rows))
-generator = RandomizedPrim((cols, rows))
+generator = RandomizedDFS((cols, rows))
+# generator = RandomizedPrim((cols, rows))
 solver = None
 
 running = True
@@ -44,6 +44,7 @@ while running:
                 running = False
 
     maze_filler(maze, generator, step_by_step=True, paused=paused)
+    # print(generator.curr, generator.prev)
 
     if generator.not_finished == False and solver == None:
         solver = DFS(maze)

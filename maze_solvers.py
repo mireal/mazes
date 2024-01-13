@@ -1,10 +1,10 @@
-add_tuple = lambda coord, move: (coord[0] + move[0], coord[1] + move[1])
+from tools import add_tuple, directions
 
 
 class DFS:
-    def __init__(self, maze: list[list], start: tuple = (0, 0), end=None):
-        self.direction_names = {(0, 1): 'right', (1, 0): 'bottom', (0, -1): 'left', (-1, 0): 'top'}
-
+    def __init__(self, maze: list[list], start: tuple = (0, 0), end: tuple = None, manhattan_distance=True):
+        self.direction_names = directions
+        self.use_manhattan_distance = manhattan_distance
         self.not_finished = True
         self.maze = maze
         self.cols, self.rows = len(maze), len(maze[0])
@@ -40,7 +40,8 @@ class DFS:
             move = add_tuple(self.curr, direction)
             if move not in self.visited:
                 passages.append(move)
-        passages.sort(key=self.manhattan_distance, reverse=True)
+        if self.use_manhattan_distance:
+            passages.sort(key=self.manhattan_distance, reverse=True)
         return passages
 
     def manhattan_distance(self, pos):
