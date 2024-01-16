@@ -2,6 +2,72 @@ from random import choice, randint, shuffle
 from tools import add_tuple, get_direction, reverse_direction, directions, remove_border
 
 
+class HuntAndKill:
+    def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0)):
+        self.col_len, self.row_len = grid_size
+        self.max_size = self.col_len * self.row_len
+        self.curr = self.prev = start_coord
+        self.hunter_curr = start_coord
+        self.not_finished = True
+        self.visited = set()
+        self.visited.add(start_coord)
+        self.hunt_mode = False
+
+    def move(self):
+        if self.hunt_mode:
+            pos = self.hunt()
+            self.hunter_curr = pos
+            if pos not in self.visited and self.not_finished:
+                self.curr = pos
+                self.prev = self.find_passage()
+                self.visited.add(pos)
+                self.hunt_mode = False
+        else:
+            move = self.kill()
+            if not move:
+                self.hunt_mode = True
+            else:
+                self.visited.add(move)
+                self.prev = self.curr
+                self.curr = move
+
+        return self.curr
+
+    def hunt(self):
+        y, x = self.hunter_curr
+        x += 1
+        if x >= self.row_len:
+            x = 0
+            y += 1
+            if y >= self.col_len:
+                self.not_finished = False
+                return
+
+        return (y, x)
+
+
+    def kill(self):
+        moves = []
+        for move in ((0, 1), (1, 0), (0, -1), (-1, 0)):
+            next_move = add_tuple(self.curr, move)
+            y, x = next_move
+            if next_move not in self.visited and 0 <= y < self.col_len and 0 <= x < self.row_len:
+                moves.append(next_move)
+        if not moves:
+            return
+        shuffle(moves)
+        return moves[0]
+
+    def find_passage(self):
+        moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        shuffle(moves)
+
+        for move in moves:
+            passage = add_tuple(self.curr, move)
+            y, x = passage
+            if passage in self.visited and 0 <= y < self.col_len and 0 <= x < self.row_len:
+                return passage
+
 class RandomizedDFS:
     def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0)):
         self.col_len, self.row_len = grid_size
@@ -110,50 +176,24 @@ def maze_filler(maze, generator, step_by_step=False, paused=False):
 
 if __name__ == '__main__':
     from time import sleep
+    from tools import create_empty_maze
+    from maze_solvers import DFS
+    cols, rows = 20, 20
 
-    len_y, len_x = 20, 20
-    board = [['.' for _ in range(len_x)] for _ in range(len_y)]
-    board_size = (len_y, len_x)
-    coord = (0, 0)
-    dfs = RandomizedDFS(board_size, coord)
-    prim = RandomizedPrim(board_size)
+    size = (cols, rows)
+    for i in range(10):
+        generator = HuntAndKill(size)
+        maze = create_empty_maze(cols, rows)
 
+        while generator.not_finished:
+            maze_filler(maze,generator,step_by_step=True)
 
-    def draw_board(board):
-        for row in board:
-            for i, ch in enumerate(row):
-                if i != len(row) - 1:
-                    print(f' {ch}', end='')
-                else:
-                    print(f' {ch}')
-        print(' ')
+        solver = DFS(maze)
 
-
-    def deep_copy(board: list[list]):
-        new_board = []
-        for row in board:
-            new_row = []
-            for ch in row:
-                new_row.append(ch)
-            new_board.append(new_row)
-        return new_board
-
-
-    def draw_maze(speed):
-        while dfs.not_finished:
-            y, x = dfs.move()
-            board[y][x] = '*'
-            curr_board = deep_copy(board)
-            # noinspection PyTypeChecker
-            curr_board[y][x] = 'X'
-            draw_board(curr_board)
-            sleep(speed)
-
-
-    for x in range(100):
-        while dfs.not_finished:
-            coord = dfs.move()
-            if type(coord) != tuple:
-                print(coord)
-
-    print('Done')
+        while solver.not_finished:
+            if not solver.queue:
+                print(f'Generation {i + 1}: Not solvable')
+                break
+            solver.move()
+        else:
+            print(f'Generation {i + 1}: Solved')

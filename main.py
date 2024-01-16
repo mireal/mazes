@@ -1,12 +1,12 @@
 import pygame
-from maze_generators import RandomizedDFS, RandomizedPrim, maze_filler
+from maze_generators import RandomizedDFS, RandomizedPrim,HuntAndKill, maze_filler
 from maze_solvers import DFS
 from drawing_tools import draw_cell
 from tools import create_empty_maze
 
 pygame.init()
 clock = pygame.time.Clock()
-speed = 20
+speed = 30
 
 cols = rows = 15
 cell_size = 30
@@ -24,7 +24,8 @@ generator_cell_color = (50, 150, 50)
 
 maze = create_empty_maze(cols, rows)
 
-generator = RandomizedDFS((cols, rows))
+# generator = RandomizedDFS((cols, rows))
+generator = HuntAndKill((cols, rows))
 # generator = RandomizedPrim((cols, rows))
 solver = None
 

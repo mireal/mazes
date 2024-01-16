@@ -103,7 +103,7 @@ class DynamicCanvas:
 class DynamicLayout:
     def __init__(self, generators: list, solvers: list, cols, rows, cell_size,
                  current_state='Generate'):
-        self.window:sg.Window = None
+        self.window: sg.Window = None
 
         self.running = True
         self.paused = True
@@ -116,23 +116,17 @@ class DynamicLayout:
         self.generators = generators
         self.solvers = solvers
 
-        self.algorithm_objects:list[RandomizedDFS] = []
+        self.algorithm_objects: list[RandomizedDFS] = []
         self.mazes = []
         self.update_algorithms(current_state)
-
 
         self.basic_maze_generator = generators[0]
         self.basic_maze = None
 
-
-
-
         self.maze_generator_choice = sg.Column([[
             sg.Text('Maze generator:'),
             # sg.Combo(self.generator_names, default_value=self.basic_maze_generator, visible=False, enable_events=True),
-            sg.Push()]], visible= False)
-
-
+            sg.Push()]], visible=False)
 
         self.grid, self.canvas_objects = self.initialize_canvases()
 
@@ -205,7 +199,7 @@ class DynamicLayout:
         for algorithm, canvas, maze in zip(self.algorithm_objects, self.canvas_objects, self.mazes):
             if algorithm.not_finished:
                 if self.current_state == 'Generate':
-                    maze_filler(maze, algorithm,step_by_step=True)
+                    maze_filler(maze, algorithm, step_by_step=True)
                 else:
                     algorithm.move()
 
@@ -222,7 +216,7 @@ class DynamicLayout:
                 canvas.draw_highlighted_cell(curr_pos)
 
     def event_handler(self):
-        event, values = self.window.read(timeout = self.speed)
+        event, values = self.window.read(timeout=self.speed)
         if event == sg.WIN_CLOSED:
             self.running = False
             return
@@ -250,7 +244,6 @@ class DynamicLayout:
         if not self.paused:
             self.move()
 
-
     def map_names_to_classes(self, classes: list):
         classes_map = {}
         for class_instance in classes:
@@ -264,11 +257,11 @@ class DynamicLayout:
 
 
 if __name__ == '__main__':
-    from maze_generators import RandomizedDFS, RandomizedPrim, maze_filler
+    from maze_generators import RandomizedDFS, RandomizedPrim, HuntAndKill, maze_filler
     from tools import create_empty_maze
     from maze_solvers import DFS
 
-    generators = [RandomizedDFS, RandomizedPrim]
+    generators = [RandomizedDFS, RandomizedPrim, HuntAndKill]
     solvers = [DFS]
 
     cols = rows = 40
