@@ -1,6 +1,11 @@
 from random import choice, randint, shuffle
-from tools import add_tuple, get_direction, reverse_direction, directions, remove_border
+from tools import add_tuple, get_direction, reverse_tuple, directions, remove_border
 
+class PlaceholderGenerator:
+    def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0)):
+        self.col_len, self.row_len = grid_size
+        self.curr = self.prev = start_coord
+        self.not_finished= False
 
 class HuntAndKill:
     def __init__(self, grid_size: tuple, start_coord: tuple = (0, 0)):
@@ -61,7 +66,6 @@ class HuntAndKill:
     def find_passage(self):
         moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
         shuffle(moves)
-
         for move in moves:
             passage = add_tuple(self.curr, move)
             y, x = passage
@@ -162,7 +166,7 @@ def maze_filler(maze, generator, step_by_step=False, paused=False):
         prev_cell = maze[prev_y][prev_x]
 
         direction = get_direction(coord, prev_coord)
-        reversed_direction = reverse_direction(direction)
+        reversed_direction = reverse_tuple(direction)
 
         direction_name = directions[direction]
         reversed_direction_name = directions[reversed_direction]
