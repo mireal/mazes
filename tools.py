@@ -57,7 +57,7 @@ def get_direction(pos: tuple, prev_pos: tuple) -> tuple:
     return y, x
 
 
-def reverse_direction(pos: tuple) -> tuple:
+def reverse_tuple(pos: tuple) -> tuple:
     y = pos[0] * -1
     x = pos[1] * -1
     return y, x
